@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>천자문 따라쓰기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#fbf6ea; --paper2:#f3ead5; --ink:#1d1a16; --muted:#7a6f5d;
+    --red:#b8322a; --red-soft:rgba(184,50,42,.28); --line:#e2d5b8;
+    --accent:#2f5d50; --accent2:#e8f0ec; --done:#2f7d4f; --card:#fffdf7;
+    --serif:"Noto Serif KR","Batang","바탕","Noto Serif CJK KR",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--paper);color:var(--ink);font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif;display:flex;flex-direction:column}
+  button{font:inherit;cursor:pointer}
+  header{display:flex;align-items:center;gap:16px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--paper2)}
+  header h1{margin:0;font-family:var(--serif);font-size:22px;letter-spacing:2px;white-space:nowrap}
+  header h1 span{color:var(--red)}
+  .prog{flex:1;display:flex;align-items:center;gap:10px;min-width:120px}
+  .bar{flex:1;height:8px;background:#e6dcc4;border-radius:4px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:var(--done);transition:width .3s}
+  .prog b{font-size:13px;white-space:nowrap;color:var(--muted);font-weight:600}
+  #menuBtn{display:none;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 10px}
+
+  .layout{flex:1;display:grid;grid-template-columns:300px 1fr;min-height:0}
+  aside{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;background:var(--paper)}
+  .search{padding:10px;display:flex;gap:6px;border-bottom:1px solid var(--line)}
+  .search input{flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);font:inherit;min-width:0}
+  .search select{border:1px solid var(--line);border-radius:8px;background:var(--card);font:inherit}
+  #list{overflow:auto;flex:1;padding:6px}
+  .ph{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer}
+  .ph:hover{background:var(--paper2)}
+  .ph.cur{background:var(--accent2);outline:1px solid #b9d0c6}
+  .ph .no{font-size:11px;color:var(--muted);width:28px;text-align:right}
+  .ph .cs{font-family:var(--serif);font-size:20px;letter-spacing:2px}
+  .ph .cs s{text-decoration:none}
+  .ph .cs s.ok{color:var(--done)}
+  .ph .rd{font-size:12px;color:var(--muted);margin-left:auto}
+
+  main{overflow:auto;padding:18px;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .strip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+  .strip .lbl{font-size:13px;color:var(--muted)}
+  .cell{width:64px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:4px 0 6px;text-align:center;cursor:pointer}
+  .cell .c{font-family:var(--serif);font-size:30px;line-height:1.2}
+  .cell .e{font-size:12px;color:var(--muted)}
+  .cell.on{border-color:var(--red);box-shadow:0 0 0 2px var(--red-soft)}
+  .cell.ok .c{color:var(--done)}
+  .ghost{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 10px;font-size:13px}
+  .ghost:hover{background:var(--paper2)}
+
+  .work{display:flex;gap:20px;align-items:flex-start;justify-content:center;width:100%;max-width:1050px;flex-wrap:wrap}
+  .boardCol{display:flex;flex-direction:column;gap:10px;align-items:center;flex:1 1 420px;max-width:600px}
+  .board{position:relative;width:min(100%,62vh);aspect-ratio:1;border-radius:6px;box-shadow:0 2px 10px rgba(60,40,10,.12)}
+  .board canvas{position:absolute;inset:0;width:100%;height:100%}
+  #ink{touch-action:none;cursor:crosshair}
+  .tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 14px;font-weight:600}
+  .btn:hover{background:var(--paper2)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{filter:brightness(1.1)}
+  #result{min-height:28px;font-weight:700;font-size:17px;text-align:center}
+  #result small{display:block;font-weight:400;font-size:13px;color:var(--muted)}
+
+  .card{flex:0 1 300px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px}
+  .model{text-align:center}
+  .model .big{font-family:var(--serif);font-size:110px;line-height:1.15;color:var(--ink)}
+  .model .big.q{color:#cbbf9f}
+  .model .hun{font-size:24px;font-weight:700;margin-top:2px}
+  .model .hun em{font-style:normal;color:var(--red)}
+  .model .meta{font-size:12px;color:var(--muted);margin-top:4px}
+  .seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{flex:1;border:0;background:transparent;padding:8px 4px;font-size:13px;font-weight:600;color:var(--muted)}
+  .seg button+button{border-left:1px solid var(--line)}
+  .seg button.on{background:var(--accent);color:#fff}
+  .help{font-size:12px;color:var(--muted);line-height:1.6;margin:0}
+  label.row{display:flex;align-items:center;gap:8px;font-size:13px}
+  label.row span{width:70px;color:var(--muted)}
+  label.row input[type=range]{flex:1}
+  .chk{display:flex;align-items:center;gap:6px;font-size:13px}
+  .stats{font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px}
+
+  @media (max-width:820px){
+    .layout{grid-template-columns:1fr}
+    aside{position:fixed;inset:52px 0 0 0;z-index:10;display:none}
+    aside.open{display:flex}
+    #menuBtn{display:block}
+    main{padding:12px 16px}
+    .card{flex:1 1 100%}
+    .model .big{font-size:80px}
+    header h1{font-size:18px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <button id="menuBtn">☰ 목록</button>
+  <h1><span>千字文</span> 따라쓰기</h1>
+  <div class="prog"><div class="bar"><i id="barFill"></i></div><b id="progTxt">0 / 1000</b></div>
+</header>
+
+<div class="layout">
+  <aside id="aside">
+    <div class="search">
+      <input id="q" placeholder="한자·훈·음 검색 (예: 天, 하늘, 천)">
+      <select id="filter">
+        <option value="all">전체</option>
+        <option value="todo">미완료</option>
+        <option value="done">완료</option>
+      </select>
+    </div>
+    <div id="list"></div>
+  </aside>
+
+  <main>
+    <div class="strip">
+      <span class="lbl" id="phNo"></span>
+      <div class="strip" id="strip"></div>
+      <button class="ghost" id="sayPhrase">🔊 구절 듣기</button>
+    </div>
+
+    <div class="work">
+      <div class="boardCol">
+        <div class="board" id="board">
+          <canvas id="bg"></canvas>
+          <canvas id="ink"></canvas>
+        </div>
+        <div class="tools">
+          <button class="btn" id="prev">◀ 이전</button>
+          <button class="btn" id="undo">↶ 되돌리기</button>
+          <button class="btn" id="clear">지우기</button>
+          <button class="btn primary" id="grade">✔ 채점하기</button>
+          <button class="btn" id="next">다음 ▶</button>
+        </div>
+        <div id="result"></div>
+      </div>
+
+      <div class="card">
+        <div class="model">
+          <div class="big" id="big"></div>
+          <div class="hun" id="hun"></div>
+          <div class="meta" id="meta"></div>
+        </div>
+        <div class="tools">
+          <button class="ghost" id="say">🔊 훈음 듣기</button>
+          <button class="ghost" id="reveal">👁 정답 보기</button>
+          <button class="ghost" id="rand">🎲 미완료 글자</button>
+        </div>
+        <div>
+          <div class="seg" id="modes">
+            <button data-m="trace" class="on">따라쓰기</button>
+            <button data-m="copy">보고쓰기</button>
+            <button data-m="test">외워쓰기</button>
+          </div>
+          <p class="help" id="modeHelp"></p>
+        </div>
+        <label class="row"><span>본보기 농도</span><input type="range" id="alpha" min="5" max="60" value="22"></label>
+        <label class="row"><span>붓 굵기</span><input type="range" id="brush" min="2" max="9" step="0.5" value="4.5"></label>
+        <label class="chk"><input type="checkbox" id="autoNext"> 70점 이상이면 자동으로 다음 글자</label>
+        <p class="help">단축키: ← → 이동 · Enter 채점 · Ctrl+Z 되돌리기 · Del 지우기</p>
+        <div class="stats" id="stats"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ───────── 천자문 데이터 (4자 1구 × 250구) ─────────
+const RAW = `
+天地玄黃|하늘 천,땅 지,검을 현,누를 황
+宇宙洪荒|집 우,집 주,넓을 홍,거칠 황
+日月盈昃|날 일,달 월,찰 영,기울 측
+辰宿列張|별 진,잘 숙,벌일 렬,베풀 장
+寒來暑往|찰 한,올 래,더울 서,갈 왕
+秋收冬藏|가을 추,거둘 수,겨울 동,감출 장
+閏餘成歲|윤달 윤,남을 여,이룰 성,해 세
+律呂調陽|법칙 률,법칙 려,고를 조,볕 양
+雲騰致雨|구름 운,오를 등,이를 치,비 우
+露結爲霜|이슬 로,맺을 결,할 위,서리 상
+金生麗水|쇠 금,날 생,고울 려,물 수
+玉出崑岡|구슬 옥,날 출,메 곤,메 강
+劍號巨闕|칼 검,이름 호,클 거,대궐 궐
+珠稱夜光|구슬 주,일컬을 칭,밤 야,빛 광
+果珍李柰|실과 과,보배 진,오얏 리,벚 내
+菜重芥薑|나물 채,무거울 중,겨자 개,생강 강
+海鹹河淡|바다 해,짤 함,물 하,맑을 담
+鱗潛羽翔|비늘 린,잠길 잠,깃 우,날 상
+龍師火帝|용 룡,스승 사,불 화,임금 제
+鳥官人皇|새 조,벼슬 관,사람 인,임금 황
+始制文字|비로소 시,지을 제,글월 문,글자 자
+乃服衣裳|이에 내,옷 복,옷 의,치마 상
+推位讓國|밀 추,자리 위,사양할 양,나라 국
+有虞陶唐|있을 유,나라 우,질그릇 도,나라 당
+弔民伐罪|조상할 조,백성 민,칠 벌,허물 죄
+周發殷湯|두루 주,필 발,나라 은,끓을 탕
+坐朝問道|앉을 좌,아침 조,물을 문,길 도
+垂拱平章|드리울 수,팔짱낄 공,평평할 평,글 장
+愛育黎首|사랑 애,기를 육,검을 려,머리 수
+臣伏戎羌|신하 신,엎드릴 복,되 융,되 강
+遐邇壹體|멀 하,가까울 이,한 일,몸 체
+率賓歸王|거느릴 솔,손 빈,돌아갈 귀,임금 왕
+鳴鳳在樹|울 명,새 봉,있을 재,나무 수
+白駒食場|흰 백,망아지 구,먹을 식,마당 장
+化被草木|될 화,입을 피,풀 초,나무 목
+賴及萬方|힘입을 뢰,미칠 급,일만 만,모 방
+蓋此身髮|덮을 개,이 차,몸 신,터럭 발
+四大五常|넉 사,큰 대,다섯 오,떳떳할 상
+恭惟鞠養|공손할 공,오직 유,기를 국,기를 양
+豈敢毁傷|어찌 기,감히 감,헐 훼,상할 상
+女慕貞烈|계집 녀,사모할 모,곧을 정,매울 렬
+男效才良|사내 남,본받을 효,재주 재,어질 량
+知過必改|알 지,지날 과,반드시 필,고칠 개
+得能莫忘|얻을 득,능할 능,말 막,잊을 망
+罔談彼短|없을 망,말씀 담,저 피,짧을 단
+靡恃己長|아닐 미,믿을 시,몸 기,긴 장
+信使可覆|믿을 신,하여금 사,옳을 가,덮을 복
+器欲難量|그릇 기,하고자할 욕,어려울 난,헤아릴 량
+墨悲絲染|먹 묵,슬플 비,실 사,물들 염
+詩讚羔羊|시 시,기릴 찬,염소 고,양 양
+景行維賢|볕 경,다닐 행,벼리 유,어질 현
+克念作聖|이길 극,생각 념,지을 작,성인 성
+德建名立|큰 덕,세울 건,이름 명,설 립
+形端表正|형상 형,끝 단,겉 표,바를 정
+空谷傳聲|빌 공,골 곡,전할 전,소리 성
+虛堂習聽|빌 허,집 당,익힐 습,들을 청
+禍因惡積|재앙 화,인할 인,악할 악,쌓을 적
+福緣善慶|복 복,인연 연,착할 선,경사 경
+尺璧非寶|자 척,구슬 벽,아닐 비,보배 보
+寸陰是競|마디 촌,그늘 음,이 시,다툴 경
+資父事君|재물 자,아비 부,일 사,임금 군
+曰嚴與敬|가로 왈,엄할 엄,더불 여,공경 경
+孝當竭力|효도 효,마땅 당,다할 갈,힘 력
+忠則盡命|충성 충,곧 즉,다할 진,목숨 명
+臨深履薄|임할 림,깊을 심,밟을 리,엷을 박
+夙興溫凊|일찍 숙,일 흥,따뜻할 온,서늘할 정
+似蘭斯馨|같을 사,난초 란,이 사,향기 형
+如松之盛|같을 여,소나무 송,갈 지,성할 성
+川流不息|내 천,흐를 류,아닐 불,쉴 식
+淵澄取映|못 연,맑을 징,취할 취,비칠 영
+容止若思|얼굴 용,그칠 지,같을 약,생각 사
+言辭安定|말씀 언,말씀 사,편안 안,정할 정
+篤初誠美|도타울 독,처음 초,정성 성,아름다울 미
+愼終宜令|삼갈 신,마칠 종,마땅 의,하여금 령
+榮業所基|영화 영,업 업,바 소,터 기
+籍甚無竟|문서 적,심할 심,없을 무,마침내 경
+學優登仕|배울 학,넉넉할 우,오를 등,벼슬 사
+攝職從政|잡을 섭,벼슬 직,좇을 종,정사 정
+存以甘棠|있을 존,써 이,달 감,아가위 당
+去而益詠|갈 거,말이을 이,더할 익,읊을 영
+樂殊貴賤|풍류 악,다를 수,귀할 귀,천할 천
+禮別尊卑|예도 례,다를 별,높을 존,낮을 비
+上和下睦|윗 상,화할 화,아래 하,화목할 목
+夫唱婦隨|지아비 부,부를 창,지어미 부,따를 수
+外受傅訓|바깥 외,받을 수,스승 부,가르칠 훈
+入奉母儀|들 입,받들 봉,어미 모,거동 의
+諸姑伯叔|모두 제,고모 고,맏 백,아재비 숙
+猶子比兒|오히려 유,아들 자,견줄 비,아이 아
+孔懷兄弟|구멍 공,품을 회,형 형,아우 제
+同氣連枝|한가지 동,기운 기,이을 련,가지 지
+交友投分|사귈 교,벗 우,던질 투,나눌 분
+切磨箴規|끊을 절,갈 마,경계 잠,법 규
+仁慈隱惻|어질 인,사랑 자,숨을 은,슬플 측
+造次弗離|지을 조,버금 차,아닐 불,떠날 리
+節義廉退|마디 절,옳을 의,청렴 렴,물러갈 퇴
+顚沛匪虧|엎드러질 전,자빠질 패,아닐 비,이지러질 휴
+性靜情逸|성품 성,고요할 정,뜻 정,편안할 일
+心動神疲|마음 심,움직일 동,귀신 신,피곤할 피
+守眞志滿|지킬 수,참 진,뜻 지,찰 만
+逐物意移|쫓을 축,만물 물,뜻 의,옮길 이
+堅持雅操|굳을 견,가질 지,맑을 아,잡을 조
+好爵自縻|좋을 호,벼슬 작,스스로 자,얽을 미
+都邑華夏|도읍 도,고을 읍,빛날 화,여름 하
+東西二京|동녘 동,서녘 서,두 이,서울 경
+背邙面洛|등 배,터 망,낯 면,물 락
+浮渭據涇|뜰 부,물 위,의거할 거,물 경
+宮殿盤鬱|집 궁,큰집 전,소반 반,답답할 울
+樓觀飛驚|다락 루,볼 관,날 비,놀랄 경
+圖寫禽獸|그림 도,베낄 사,새 금,짐승 수
+畵彩仙靈|그림 화,채색 채,신선 선,신령 령
+丙舍傍啓|남녘 병,집 사,곁 방,열 계
+甲帳對楹|갑옷 갑,장막 장,대할 대,기둥 영
+肆筵設席|베풀 사,자리 연,베풀 설,자리 석
+鼓瑟吹笙|북 고,비파 슬,불 취,저 생
+升階納陛|오를 승,섬돌 계,들일 납,섬돌 폐
+弁轉疑星|고깔 변,구를 전,의심할 의,별 성
+右通廣內|오른 우,통할 통,넓을 광,안 내
+左達承明|왼 좌,통달할 달,이을 승,밝을 명
+旣集墳典|이미 기,모을 집,무덤 분,법 전
+亦聚群英|또 역,모을 취,무리 군,꽃부리 영
+杜稿鍾隸|막을 두,볏짚 고,쇠북 종,글씨 례
+漆書壁經|옻 칠,글 서,벽 벽,글 경
+府羅將相|마을 부,벌일 라,장수 장,서로 상
+路俠槐卿|길 로,낄 협,회화나무 괴,벼슬 경
+戶封八縣|지게 호,봉할 봉,여덟 팔,고을 현
+家給千兵|집 가,줄 급,일천 천,군사 병
+高冠陪輦|높을 고,갓 관,모실 배,수레 련
+驅轂振纓|몰 구,바퀴 곡,떨칠 진,갓끈 영
+世祿侈富|인간 세,녹 록,사치할 치,부자 부
+車駕肥輕|수레 거,멍에 가,살찔 비,가벼울 경
+策功茂實|꾀 책,공 공,무성할 무,열매 실
+勒碑刻銘|굴레 륵,비석 비,새길 각,새길 명
+磻溪伊尹|반계 반,시내 계,저 이,다스릴 윤
+佐時阿衡|도울 좌,때 시,언덕 아,저울대 형
+奄宅曲阜|문득 엄,집 택,굽을 곡,언덕 부
+微旦孰營|작을 미,아침 단,누구 숙,경영할 영
+桓公匡合|굳셀 환,공변될 공,바를 광,모을 합
+濟弱扶傾|건널 제,약할 약,붙들 부,기울 경
+綺回漢惠|비단 기,돌아올 회,한수 한,은혜 혜
+說感武丁|기쁠 열,느낄 감,호반 무,장정 정
+俊乂密勿|준걸 준,어질 예,빽빽할 밀,말 물
+多士寔寧|많을 다,선비 사,이 식,편안 녕
+晉楚更霸|나라 진,나라 초,다시 갱,으뜸 패
+趙魏困橫|나라 조,나라 위,곤할 곤,비낄 횡
+假途滅虢|거짓 가,길 도,멸할 멸,나라 괵
+踐土會盟|밟을 천,흙 토,모을 회,맹세 맹
+何遵約法|어찌 하,좇을 준,맺을 약,법 법
+韓弊煩刑|나라 한,해질 폐,번거로울 번,형벌 형
+起翦頗牧|일어날 기,자를 전,자못 파,칠 목
+用軍最精|쓸 용,군사 군,가장 최,정할 정
+宣威沙漠|베풀 선,위엄 위,모래 사,아득할 막
+馳譽丹靑|달릴 치,기릴 예,붉을 단,푸를 청
+九州禹跡|아홉 구,고을 주,임금 우,자취 적
+百郡秦幷|일백 백,고을 군,나라 진,아우를 병
+嶽宗恒岱|큰산 악,마루 종,항상 항,뫼 대
+禪主云亭|터닦을 선,주인 주,이를 운,정자 정
+雁門紫塞|기러기 안,문 문,붉을 자,변방 새
+鷄田赤城|닭 계,밭 전,붉을 적,재 성
+昆池碣石|맏 곤,못 지,비석 갈,돌 석
+鉅野洞庭|클 거,들 야,골 동,뜰 정
+曠遠綿邈|빌 광,멀 원,솜 면,멀 막
+巖岫杳冥|바위 암,멧부리 수,아득할 묘,어두울 명
+治本於農|다스릴 치,근본 본,어조사 어,농사 농
+務玆稼穡|힘쓸 무,이 자,심을 가,거둘 색
+俶載南畝|비로소 숙,실을 재,남녘 남,이랑 묘
+我藝黍稷|나 아,재주 예,기장 서,피 직
+稅熟貢新|구실 세,익을 숙,바칠 공,새 신
+勸賞黜陟|권할 권,상줄 상,내칠 출,오를 척
+孟軻敦素|맏 맹,수레 가,도타울 돈,흴 소
+史魚秉直|사기 사,고기 어,잡을 병,곧을 직
+庶幾中庸|여러 서,몇 기,가운데 중,떳떳할 용
+勞謙謹勅|수고로울 로,겸손할 겸,삼갈 근,칙서 칙
+聆音察理|들을 령,소리 음,살필 찰,다스릴 리
+鑑貌辨色|거울 감,모양 모,분별할 변,빛 색
+貽厥嘉猷|끼칠 이,그 궐,아름다울 가,꾀 유
+勉其祗植|힘쓸 면,그 기,공경 지,심을 식
+省躬譏誡|살필 성,몸 궁,나무랄 기,경계할 계
+寵增抗極|사랑할 총,더할 증,겨룰 항,다할 극
+殆辱近恥|위태할 태,욕될 욕,가까울 근,부끄러울 치
+林皐幸卽|수풀 림,언덕 고,다행 행,곧 즉
+兩疏見機|두 량,성길 소,볼 견,틀 기
+解組誰逼|풀 해,끈 조,누구 수,핍박할 핍
+索居閑處|찾을 색,살 거,한가할 한,곳 처
+沈默寂寥|잠길 침,잠잠할 묵,고요할 적,고요할 료
+求古尋論|구할 구,예 고,찾을 심,의논할 론
+散慮逍遙|흩을 산,생각 려,노닐 소,멀 요
+欣奏累遣|기쁠 흔,아뢸 주,여러 루,보낼 견
+慼謝歡招|슬플 척,사례할 사,기쁠 환,부를 초
+渠荷的歷|개천 거,연꽃 하,과녁 적,지날 력
+園莽抽條|동산 원,풀 망,뺄 추,가지 조
+枇杷晩翠|비파나무 비,비파나무 파,늦을 만,푸를 취
+梧桐早凋|오동 오,오동 동,이를 조,시들 조
+陳根委翳|베풀 진,뿌리 근,맡길 위,가릴 예
+落葉飄颻|떨어질 락,잎 엽,나부낄 표,나부낄 요
+遊鵾獨運|놀 유,곤새 곤,홀로 독,옮길 운
+凌摩絳霄|업신여길 릉,만질 마,붉을 강,하늘 소
+耽讀翫市|즐길 탐,읽을 독,구경 완,저자 시
+寓目囊箱|붙일 우,눈 목,주머니 낭,상자 상
+易輶攸畏|쉬울 이,가벼울 유,바 유,두려울 외
+屬耳垣牆|붙일 속,귀 이,담 원,담 장
+具膳飡飯|갖출 구,반찬 선,밥 손,밥 반
+適口充腸|맞을 적,입 구,채울 충,창자 장
+飽飫烹宰|배부를 포,배부를 어,삶을 팽,재상 재
+飢厭糟糠|주릴 기,싫을 염,지게미 조,겨 강
+親戚故舊|친할 친,겨레 척,연고 고,예 구
+老少異糧|늙을 로,젊을 소,다를 이,양식 량
+妾御績紡|첩 첩,모실 어,길쌈 적,길쌈 방
+侍巾帷房|모실 시,수건 건,휘장 유,방 방
+紈扇圓潔|흰비단 환,부채 선,둥글 원,깨끗할 결
+銀燭煒煌|은 은,촛불 촉,빛날 위,빛날 황
+晝眠夕寐|낮 주,잘 면,저녁 석,잘 매
+藍筍象牀|쪽 람,죽순 순,코끼리 상,평상 상
+絃歌酒讌|줄 현,노래 가,술 주,잔치 연
+接杯擧觴|이을 접,잔 배,들 거,잔 상
+矯手頓足|바로잡을 교,손 수,두드릴 돈,발 족
+悅豫且康|기쁠 열,미리 예,또 차,편안 강
+嫡後嗣續|정실 적,뒤 후,이을 사,이을 속
+祭祀蒸嘗|제사 제,제사 사,찔 증,맛볼 상
+稽顙再拜|조아릴 계,이마 상,두 재,절 배
+悚懼恐惶|두려울 송,두려울 구,두려울 공,두려울 황
+牋牒簡要|편지 전,편지 첩,대쪽 간,요긴할 요
+顧答審詳|돌아볼 고,대답 답,살필 심,자세할 상
+骸垢想浴|뼈 해,때 구,생각 상,목욕할 욕
+執熱願涼|잡을 집,더울 열,원할 원,서늘할 량
+驢騾犢特|나귀 려,노새 라,송아지 독,수소 특
+駭躍超驤|놀랄 해,뛸 약,뛰어넘을 초,달릴 양
+誅斬賊盜|벨 주,벨 참,도둑 적,도둑 도
+捕獲叛亡|잡을 포,얻을 획,배반할 반,도망 망
+布射遼丸|베 포,쏠 사,멀 료,둥글 환
+嵇琴阮嘯|산이름 혜,거문고 금,성 완,휘파람 소
+恬筆倫紙|편안할 념,붓 필,인륜 륜,종이 지
+鈞巧任釣|서른근 균,공교할 교,맡길 임,낚시 조
+釋紛利俗|풀 석,어지러울 분,이로울 리,풍속 속
+竝皆佳妙|아우를 병,다 개,아름다울 가,묘할 묘
+毛施淑姿|털 모,베풀 시,맑을 숙,모양 자
+工嚬姸笑|장인 공,찡그릴 빈,고울 연,웃음 소
+年矢每催|해 년,화살 시,매양 매,재촉할 최
+羲暉朗曜|복희 희,빛날 휘,밝을 랑,빛날 요
+璇璣懸斡|구슬 선,구슬 기,달 현,돌 알
+晦魄環照|그믐 회,넋 백,고리 환,비칠 조
+指薪修祜|가리킬 지,섶 신,닦을 수,복 호
+永綏吉劭|길 영,편안할 수,길할 길,높을 소
+矩步引領|법 구,걸음 보,끌 인,옷깃 령
+俯仰廊廟|구부릴 부,우러를 앙,행랑 랑,사당 묘
+束帶矜莊|묶을 속,띠 대,자랑할 긍,씩씩할 장
+徘徊瞻眺|배회할 배,배회할 회,볼 첨,바라볼 조
+孤陋寡聞|외로울 고,더러울 루,적을 과,들을 문
+愚蒙等誚|어리석을 우,어릴 몽,무리 등,꾸짖을 초
+謂語助者|이를 위,말씀 어,도울 조,놈 자
+焉哉乎也|어찌 언,어조사 재,어조사 호,어조사 야`;
+
+const CHARS = [], PHRASES = [];
+RAW.trim().split('\n').forEach((line, pi) => {
+  const [chars, hs] = line.split('|');
+  const hus = hs.split(',');
+  const start = CHARS.length;
+  [...chars].forEach((ch, i) => {
+    const s = hus[i].trim(), k = s.lastIndexOf(' ');
+    CHARS.push({ ch, hun: s.slice(0, k), eum: s.slice(k + 1), pi, idx: CHARS.length });
+  });
+  PHRASES.push({ chars, start, read: CHARS.slice(start).map(c => c.eum).join('') });
+});
+
+// ───────── 상태 ─────────
+const $ = s => document.querySelector(s);
+const FONT = `"Noto Serif KR","Batang","바탕","BatangChe","Noto Serif CJK KR","Source Han Serif K",serif`;
+const STORE = 'cheonjamun-progress-v1';
+let progress = {};
+try { progress = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) {}
+const saveProgress = () => { try { localStorage.setItem(STORE, JSON.stringify(progress)); } catch (e) {} };
+const isDone = i => (progress[i]?.best || 0) >= 70;
+
+let cur = 0, mode = 'trace', revealed = false, strokes = [], drawing = null;
+try { cur = +localStorage.getItem(STORE + '-cur') || 0; mode = localStorage.getItem(STORE + '-mode') || 'trace'; } catch (e) {}
+
+const bg = $('#bg'), ink = $('#ink'), bctx = bg.getContext('2d'), ictx = ink.getContext('2d');
+let S = 0;
+
+// ───────── 캔버스 ─────────
+function resize() {
+  S = Math.floor($('#board').getBoundingClientRect().width);
+  const dpr = window.devicePixelRatio || 1;
+  for (const c of [bg, ink]) {
+    c.width = c.height = Math.round(S * dpr);
+    c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  drawBg(); redrawInk();
+}
+
+function drawGlyph(ctx, ch, s, color, strokeW = 0) {
+  ctx.save();
+  ctx.font = `${Math.round(s * 0.8)}px ${FONT}`;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  const m = ctx.measureText(ch);
+  const w = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+  const h = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+  const x = (s - w) / 2 + m.actualBoundingBoxLeft;
+  const y = (s - h) / 2 + m.actualBoundingBoxAscent;
+  ctx.fillStyle = color; ctx.fillText(ch, x, y);
+  if (strokeW) { ctx.lineWidth = strokeW; ctx.lineJoin = 'round'; ctx.strokeStyle = color; ctx.strokeText(ch, x, y); }
+  ctx.restore();
+}
+
+function drawBg() {
+  const c = bctx, s = S;
+  c.clearRect(0, 0, s, s);
+  c.fillStyle = '#fffdf6'; c.fillRect(0, 0, s, s);
+  // 米字格 안내선
+  c.strokeStyle = 'rgba(184,50,42,.35)'; c.lineWidth = 1; c.setLineDash([6, 6]);
+  c.beginPath();
+  c.moveTo(s / 2, 0); c.lineTo(s / 2, s); c.moveTo(0, s / 2); c.lineTo(s, s / 2);
+  c.moveTo(0, 0); c.lineTo(s, s); c.moveTo(s, 0); c.lineTo(0, s);
+  c.stroke(); c.setLineDash([]);
+  c.strokeStyle = '#b8322a'; c.lineWidth = 3; c.strokeRect(1.5, 1.5, s - 3, s - 3);
+
+  const ch = CHARS[cur].ch;
+  if (revealed) drawGlyph(c, ch, s, 'rgba(200,40,40,.35)');
+  else if (mode === 'trace') drawGlyph(c, ch, s, `rgba(0,0,0,${$('#alpha').value / 100})`);
+}
+
+// ───────── 붓 그리기 ─────────
+const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+function seg(ctx, pts, i, s, extra) {
+  const a = pts[i - 1], b = pts[i];
+  const pa = i > 1 ? mid(pts[i - 2], a) : a, mb = mid(a, b);
+  ctx.lineWidth = a.w * s + extra;
+  ctx.beginPath(); ctx.moveTo(pa.x * s, pa.y * s);
+  ctx.quadraticCurveTo(a.x * s, a.y * s, mb.x * s, mb.y * s); ctx.stroke();
+}
+function tail(ctx, pts, s, extra) {
+  const n = pts.length; if (n < 2) return;
+  const a = n > 2 ? mid(pts[n - 3], pts[n - 2]) : pts[n - 2];
+  const m = mid(pts[n - 2], pts[n - 1]);
+  ctx.lineWidth = pts[n - 1].w * s + extra;
+  ctx.beginPath(); ctx.moveTo(m.x * s, m.y * s); ctx.lineTo(pts[n - 1].x * s, pts[n - 1].y * s); ctx.stroke();
+}
+function dot(ctx, p, s, extra) {
+  ctx.beginPath(); ctx.arc(p.x * s, p.y * s, (p.w * s + extra) / 2, 0, Math.PI * 2); ctx.fill();
+}
+function setInk(ctx, color) {
+  ctx.strokeStyle = ctx.fillStyle = color; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+}
+function renderStrokes(ctx, s, extra = 0, color = '#1d1a16') {
+  setInk(ctx, color);
+  for (const st of strokes) {
+    dot(ctx, st.pts[0], s, extra);
+    for (let i = 1; i < st.pts.length; i++) seg(ctx, st.pts, i, s, extra);
+    tail(ctx, st.pts, s, extra);
+  }
+}
+function redrawInk() { ictx.clearRect(0, 0, S, S); renderStrokes(ictx, S); }
+
+function pointOf(e, prev) {
+  const r = ink.getBoundingClientRect();
+  const p = { x: (e.clientX - r.left) / S, y: (e.clientY - r.top) / S, t: e.timeStamp };
+  const base = $('#brush').value / 100;
+  let f = 1;
+  if (prev) {
+    const dt = Math.max(1, p.t - prev.t);
+    const v = Math.hypot(p.x - prev.x, p.y - prev.y) * S / dt; // px/ms
+    f = Math.min(1.25, Math.max(0.45, 1.25 - v * 0.35));
+  }
+  if (e.pointerType === 'pen' && e.pressure > 0) f *= 0.4 + e.pressure * 1.2;
+  const target = base * f;
+  p.w = prev ? prev.w * 0.7 + target * 0.3 : base;
+  return p;
+}
+
+ink.addEventListener('pointerdown', e => {
+  e.preventDefault(); ink.setPointerCapture(e.pointerId);
+  const p = pointOf(e);
+  drawing = { pts: [p] }; strokes.push(drawing);
+  setInk(ictx, '#1d1a16'); dot(ictx, p, S, 0);
+});
+ink.addEventListener('pointermove', e => {
+  if (!drawing) return;
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  setInk(ictx, '#1d1a16');
+  for (const ev of evs.length ? evs : [e]) {
+    const pts = drawing.pts, prev = pts[pts.length - 1];
+    const p = pointOf(ev, prev);
+    if (Math.hypot(p.x - prev.x, p.y - prev.y) * S < 1) continue;
+    pts.push(p); seg(ictx, pts, pts.length - 1, S, 0);
+  }
+});
+const endStroke = () => {
+  if (!drawing) return;
+  setInk(ictx, '#1d1a16'); tail(ictx, drawing.pts, S, 0);
+  drawing = null;
+};
+ink.addEventListener('pointerup', endStroke);
+ink.addEventListener('pointercancel', endStroke);
+
+// ───────── 채점 ─────────
+function mask(drawFn) {
+  const N = 160, c = document.createElement('canvas');
+  c.width = c.height = N;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  drawFn(ctx, N);
+  const d = ctx.getImageData(0, 0, N, N).data, m = new Uint8Array(N * N);
+  for (let i = 0; i < m.length; i++) m[i] = d[i * 4 + 3] > 100 ? 1 : 0;
+  return m;
+}
+function grade() {
+  if (!strokes.length) { showResult('먼저 글자를 써 보세요.', ''); return; }
+  const ch = CHARS[cur].ch, tol = 0.06;
+  const G  = mask((c, N) => drawGlyph(c, ch, N, '#000'));
+  const Gd = mask((c, N) => drawGlyph(c, ch, N, '#000', N * tol));
+  const U  = mask((c, N) => renderStrokes(c, N, 0, '#000'));
+  const Ud = mask((c, N) => renderStrokes(c, N, N * tol, '#000'));
+  let g = 0, gHit = 0, u = 0, uHit = 0;
+  for (let i = 0; i < G.length; i++) {
+    if (G[i]) { g++; if (Ud[i]) gHit++; }
+    if (U[i]) { u++; if (Gd[i]) uHit++; }
+  }
+  const recall = g ? gHit / g : 0, precision = u ? uHit / u : 0;
+  const f1 = recall + precision ? 2 * recall * precision / (recall + precision) : 0;
+  const score = Math.round(Math.min(1, f1 * 1.12) * 100);
+
+  const rec = progress[cur] || { best: 0, tries: 0 };
+  rec.tries++; rec.best = Math.max(rec.best, score); rec.last = Date.now();
+  progress[cur] = rec; saveProgress();
+
+  const msg = score >= 90 ? '🎉 훌륭해요!' : score >= 75 ? '👍 잘 썼어요!' : score >= 55 ? '🙂 조금만 더!' : '✍️ 다시 해볼까요?';
+  const tip = recall < precision - 0.1 ? '빠진 획이 있어요. 본보기의 획을 모두 채워 보세요.'
+            : precision < recall - 0.1 ? '획이 본보기 밖으로 많이 나갔어요. 위치와 크기를 맞춰 보세요.'
+            : '획의 위치와 모양을 본보기와 비교해 보세요.';
+  showResult(`${msg} ${score}점`, `획 채움 ${Math.round(recall * 100)}% · 정확도 ${Math.round(precision * 100)}% — ${tip} (최고 ${rec.best}점)`);
+
+  revealed = true; drawBg(); renderAll();
+  if ($('#autoNext').checked && score >= 70 && cur < CHARS.length - 1) setTimeout(() => go(cur + 1), 1300);
+}
+function showResult(a, b) { $('#result').innerHTML = a + (b ? `<small>${b}</small>` : ''); }
+
+// ───────── 소리 ─────────
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ko-KR'; u.rate = 0.85;
+  const v = speechSynthesis.getVoices().find(v => v.lang && v.lang.startsWith('ko'));
+  if (v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+
+// ───────── 화면 갱신 ─────────
+const MODE_HELP = {
+  trace: '흐린 본보기 위에 그대로 따라 써 보세요.',
+  copy: '오른쪽 본보기를 보면서 빈 칸에 써 보세요.',
+  test: '훈과 음만 보고 기억해서 써 보세요. 채점하면 정답이 나타나요.',
+};
+function renderAll() {
+  const c = CHARS[cur], p = PHRASES[c.pi], hide = mode === 'test' && !revealed;
+  $('#phNo').textContent = `제 ${c.pi + 1}구 / 250`;
+  $('#strip').innerHTML = [...p.chars].map((ch, i) => {
+    const idx = p.start + i, me = idx === cur;
+    return `<div class="cell ${me ? 'on' : ''} ${isDone(idx) ? 'ok' : ''}" data-i="${idx}">
+      <div class="c">${me && hide ? '?' : ch}</div><div class="e">${CHARS[idx].eum}</div></div>`;
+  }).join('');
+  const big = $('#big');
+  big.textContent = hide ? '?' : c.ch;
+  big.classList.toggle('q', hide);
+  $('#hun').innerHTML = `${c.hun} <em>${c.eum}</em>`;
+  const r = progress[cur];
+  $('#meta').textContent = `${cur + 1}번째 글자 · ${p.chars} (${p.read})` + (r ? ` · 최고 ${r.best}점 / ${r.tries}회` : '');
+  $('#modes').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.m === mode));
+  $('#modeHelp').textContent = MODE_HELP[mode];
+  $('#alpha').disabled = mode !== 'trace';
+
+  const done = CHARS.filter((_, i) => isDone(i)).length;
+  $('#barFill').style.width = done / 10 + '%';
+  $('#progTxt').textContent = `완료 ${done} / 1000`;
+  const tries = Object.values(progress).reduce((a, r) => a + r.tries, 0);
+  const scores = Object.values(progress).map(r => r.best);
+  const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+  $('#stats').textContent = `연습한 글자 ${scores.length}자 · 총 ${tries}회 채점 · 평균 최고점 ${avg}점`;
+  renderList();
+}
+
+function renderList() {
+  const q = $('#q').value.trim(), f = $('#filter').value;
+  const html = [];
+  PHRASES.forEach((p, pi) => {
+    const idxs = [0, 1, 2, 3].map(i => p.start + i);
+    if (q && !idxs.some(i => { const c = CHARS[i]; return c.ch === q || c.hun.includes(q) || c.eum === q; }) && !p.read.includes(q) && !p.chars.includes(q)) return;
+    const dn = idxs.filter(isDone).length;
+    if (f === 'done' && dn < 4) return;
+    if (f === 'todo' && dn === 4) return;
+    html.push(`<div class="ph ${CHARS[cur].pi === pi ? 'cur' : ''}" data-i="${p.start}">
+      <span class="no">${pi + 1}</span>
+      <span class="cs">${idxs.map(i => `<s class="${isDone(i) ? 'ok' : ''}" data-i="${i}">${CHARS[i].ch}</s>`).join('')}</span>
+      <span class="rd">${p.read}</span></div>`);
+  });
+  $('#list').innerHTML = html.join('') || '<p class="help" style="padding:10px">검색 결과가 없어요.</p>';
+}
+
+function go(i) {
+  cur = (i + CHARS.length) % CHARS.length;
+  strokes = []; revealed = false; showResult('', '');
+  try { localStorage.setItem(STORE + '-cur', cur); } catch (e) {}
+  drawBg(); redrawInk(); renderAll();
+  const el = $('#list .ph.cur'); if (el) el.scrollIntoView({ block: 'nearest' });
+  // 웹폰트가 늦게 받아지면 본보기를 다시 그림
+  if (document.fonts) document.fonts.load(`40px "Noto Serif KR"`, CHARS[cur].ch).then(drawBg).catch(() => {});
+}
+
+// ───────── 이벤트 ─────────
+$('#prev').onclick = () => go(cur - 1);
+$('#next').onclick = () => go(cur + 1);
+$('#undo').onclick = () => { strokes.pop(); redrawInk(); };
+$('#clear').onclick = () => { strokes = []; redrawInk(); showResult('', ''); };
+$('#grade').onclick = grade;
+$('#say').onclick = () => speak(`${CHARS[cur].hun} ${CHARS[cur].eum}`);
+$('#sayPhrase').onclick = () => { const p = PHRASES[CHARS[cur].pi]; speak(p.read + '. ' + [0,1,2,3].map(i => { const c = CHARS[p.start + i]; return `${c.hun} ${c.eum}`; }).join(', ')); };
+$('#reveal').onclick = () => { revealed = !revealed; drawBg(); renderAll(); };
+$('#rand').onclick = () => {
+  const todo = CHARS.map((_, i) => i).filter(i => !isDone(i));
+  if (!todo.length) { showResult('🏆 천 글자를 모두 완료했어요!', ''); return; }
+  go(todo[Math.floor(Math.random() * todo.length)]);
+};
+$('#modes').onclick = e => {
+  const m = e.target.dataset.m; if (!m) return;
+  mode = m; revealed = false;
+  try { localStorage.setItem(STORE + '-mode', mode); } catch (err) {}
+  drawBg(); renderAll();
+};
+$('#alpha').oninput = drawBg;
+$('#strip').onclick = e => { const el = e.target.closest('[data-i]'); if (el) go(+el.dataset.i); };
+$('#list').onclick = e => {
+  const el = e.target.closest('[data-i]'); if (!el) return;
+  go(+el.dataset.i); $('#aside').classList.remove('open');
+};
+$('#q').oninput = renderList;
+$('#filter').onchange = renderList;
+$('#menuBtn').onclick = () => $('#aside').classList.toggle('open');
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'ArrowLeft') go(cur - 1);
+  else if (e.key === 'ArrowRight') go(cur + 1);
+  else if (e.key === 'Enter') { e.preventDefault(); grade(); }
+  else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); strokes.pop(); redrawInk(); }
+  else if (e.key === 'Delete' || e.key === 'Backspace') { strokes = []; redrawInk(); showResult('', ''); }
+});
+
+new ResizeObserver(resize).observe($('#board'));
+if ('speechSynthesis' in window) speechSynthesis.getVoices();
+go(cur);
+</script>
+</body>
+</html>
