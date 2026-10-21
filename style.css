@@ -1,0 +1,52 @@
+
+<div class="qa-container">
+    <header class="qa-header">
+        <div class="qa-logo">Q</div>
+        <div>
+            <h1>문서 Q&A</h1>
+            <p>내부 문서 기반 질의응답 서비스</p>
+        </div>
+    </header>
+
+    <main class="qa-messages" id="messages">
+        <div class="qa-question">
+            환불은 며칠 이내에 신청해야 하나요?
+        </div>
+
+        <section class="qa-answer">
+            <div class="qa-answer-header">
+                <div class="qa-bot-icon">AI</div>
+                <span>AI 답변</span>
+            </div>
+
+            <div class="qa-answer-content" id="answer">
+                환불은 상품 수령일로부터 7일 이내에 신청해야 합니다.
+            </div>
+
+            <div class="qa-sources">
+                <h3>참고 문서</h3>
+                <div class="qa-source-item">
+                    <span>📄</span>
+                    <span class="file-name">manual.pdf</span>
+                    <span class="file-page">7페이지</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <form class="qa-input-panel" id="questionForm">
+        <textarea
+            class="qa-input"
+            id="question"
+            placeholder="궁금한 내용을 입력하세요..."
+            rows="2"
+            required
+        ></textarea>
+
+        <div class="qa-input-actions">
+            <button class="qa-submit" type="submit">
+                질문하기 ↑
+            </button>
+        </div>
+    </form>
+</div>
