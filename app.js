@@ -16,7 +16,7 @@ async function askQuestion(question) {
     return await response.json();
 }
 
-document.querySelector("#send").addEventListener("click", async () => {
+document.querySelector("#questionForm").addEventListener("click", async () => {
     const question = document.querySelector("#question").value.trim();
     const answerBox = document.querySelector("#answer");
 
