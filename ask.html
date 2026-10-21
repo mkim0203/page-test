@@ -1,5 +1,6 @@
 <link rel="stylesheet" href="style.css">
 
+<body>
 <div class="qa-container">
     <header class="qa-header">
         <div class="qa-logo">Q</div>
@@ -9,32 +10,15 @@
         </div>
     </header>
 
+    <!-- 질문과 답변이 계속 누적되는 영역 -->
     <main class="qa-messages" id="messages">
-        <div class="qa-question">
-            환불은 며칠 이내에 신청해야 하나요?
+        <div class="qa-welcome" id="welcome">
+            <h2>무엇이든 질문하세요.</h2>
+            <p>등록된 문서를 검색하여 답변해 드립니다.</p>
         </div>
-
-        <section class="qa-answer">
-            <div class="qa-answer-header">
-                <div class="qa-bot-icon">AI</div>
-                <span>AI 답변</span>
-            </div>
-
-            <div class="qa-answer-content" id="answer">
-                환불은 상품 수령일로부터 7일 이내에 신청해야 합니다.
-            </div>
-
-            <div class="qa-sources">
-                <h3>참고 문서</h3>
-                <div class="qa-source-item">
-                    <span>📄</span>
-                    <span class="file-name">manual.pdf</span>
-                    <span class="file-page">7페이지</span>
-                </div>
-            </div>
-        </section>
     </main>
 
+    <!-- 질문 입력 영역 -->
     <form class="qa-input-panel" id="questionForm">
         <textarea
             class="qa-input"
@@ -45,12 +29,12 @@
         ></textarea>
 
         <div class="qa-input-actions">
-            <button class="qa-submit" type="submit">
+            <button class="qa-submit" id="submitButton" type="submit">
                 질문하기 ↑
             </button>
         </div>
     </form>
 </div>
 
-
-<script src="./app.js"></script>
+<script src="app.js"></script>
+</body>
