@@ -15,3 +15,21 @@ async function askQuestion(question) {
 
     return await response.json();
 }
+
+document.querySelector("#send").addEventListener("click", async () => {
+    const question = document.querySelector("#question").value.trim();
+    const answerBox = document.querySelector("#answer");
+
+    if (!question) return;
+
+    answerBox.textContent = "자료를 찾는 중...";
+
+    try {
+        const result = await askQuestion(question);
+        answerBox.textContent = result.answer;
+    } catch (error) {
+        answerBox.textContent =
+            "API 연결에 실패했습니다. 로컬 서버와 브라우저 권한을 확인하세요.";
+        console.error(error);
+    }
+});
