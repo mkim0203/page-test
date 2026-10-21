@@ -17,6 +17,8 @@ async function askQuestion(question) {
 }
 
 document.querySelector("#questionForm").addEventListener("click", async () => {
+    event.preventDefault();
+    
     const question = document.querySelector("#question").value.trim();
     const answerBox = document.querySelector("#answer");
 
