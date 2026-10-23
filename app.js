@@ -64,7 +64,7 @@ form.addEventListener("submit", async (event) => {
 
     try {
         const response = await fetch(
-            "http://127.0.0.1:18000/api/ask",
+            "http://192.168.0.2:18000/api/ask",
             {
                 method: "POST",
                 headers: {
